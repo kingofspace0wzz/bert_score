@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import time
 import argparse
 import torch
@@ -28,7 +29,7 @@ def main():
     parser.add_argument('-s', '--seg_level', action='store_true', help='show individual score of each pair')
     parser.add_argument('-v', '--verbose', action='store_true', help='increase output verbosity')
     parser.add_argument('-r', '--ref', required=True, help='reference file path')
-    parser.add_argument('-c', '--cand', required=True,help='candidate file path')
+    parser.add_argument('-c', '--cand', required=True,help='candidate (system outputs) file path')
 
     args = parser.parse_args()
 
