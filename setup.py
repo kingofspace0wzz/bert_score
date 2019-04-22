@@ -21,7 +21,7 @@ setup(
                       'pytorch-pretrained-bert>=0.6.1'],
     entry_points={
         'console_scripts': [
-            "bert-score=bert_score_cli.score:main",
+            "bert-score=cli.score:main",
         ]
 
     },
