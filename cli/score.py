@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 import time
 import argparse
 import torch
@@ -28,16 +29,21 @@ def main():
     parser.add_argument('--no_idf', action='store_true', help='BERT Score without IDF scaling')
     parser.add_argument('-s', '--seg_level', action='store_true', help='show individual score of each pair')
     parser.add_argument('-v', '--verbose', action='store_true', help='increase output verbosity')
-    parser.add_argument('-r', '--ref', required=True, help='reference file path')
-    parser.add_argument('-c', '--cand', required=True,help='candidate (system outputs) file path')
+    parser.add_argument('-r', '--ref', required=True, help='reference file path or a string')
+    parser.add_argument('-c', '--cand', required=True,help='candidate (system outputs) file path or a string')
 
     args = parser.parse_args()
 
-    with open(args.cand) as f:
-        cands = [line.strip() for line in f]
+    if os.path.isfile(args.cand) and os.path.isfile(args.ref):
+        with open(args.cand) as f:
+            cands = [line.strip() for line in f]
 
-    with open(args.ref) as f:
-        refs = [line.strip() for line in f]
+        with open(args.ref) as f:
+            refs = [line.strip() for line in f]
+    else:
+        cands = [args.cand]
+        refs = [args.ref]
+        assert args.no_idf, "do not suuport idf fold for a single pair of sentences"
 
     assert len(cands) == len(refs)
 
