@@ -8,6 +8,8 @@ Metric described in the paper [BERTScore: Evaluating Text Generation with BERT](
 * [Kilian Q. Weinberger](http://kilian.cs.cornell.edu/index.html)
 * [Yoav Artzi](https://yoavartzi.com/)
 
+*: Equal Contribution
+
 ### Overview
 
 
@@ -15,3 +17,7 @@ Metric described in the paper [BERTScore: Evaluating Text Generation with BERT](
 
 
 ### Usage
+
+
+### Acknowledgement
+This repo wouldn't be possible without the awesome [pytorch-pretrained-BERT](https://github.com/huggingface/pytorch-pretrained-BERT).
