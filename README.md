@@ -11,7 +11,9 @@ Metric described in the paper [BERTScore: Evaluating Text Generation with BERT](
 *: Equal Contribution
 
 ### Overview
+This repo contains an example implementation of the evaluation metric BERTScore, described in the paper BERTScore: Evaluating Text Generation with BERT.
 
+BERTScore is used to evaluate similarity between candidate and corresponding reference sentences. BERTScore leverages pre-trained contextual embeddings from BERT and greedily matches similarity between words pieces in the candidate and word pieces in the refeerence to compute the final score.
 
 ### Installation
 
