@@ -65,7 +65,7 @@ def get_bert_embedding(all_sens, model, tokenizer, idf_dict,
     padded_sens, padded_idf, lens, mask = collate_idf(all_sens,
                                                       tokenizer.tokenize, tokenizer.convert_tokens_to_ids,
                                                       idf_dict,
-                                                      device=device, bert=True)
+                                                      device=device)
 
     if batch_size == -1: batch_size = len(all_sens)
 
@@ -73,8 +73,7 @@ def get_bert_embedding(all_sens, model, tokenizer, idf_dict,
     with torch.no_grad():
         for i in range(0, len(all_sens), batch_size):
             batch_embedding = bert_encode(model, padded_sens[i:i+batch_size],
-                                          attention_mask=mask[i:i+batch_size],
-                                          all_layers=all_layers)
+                                          attention_mask=mask[i:i+batch_size])
             batch_embedding = torch.stack(batch_embedding)
             embeddings.append(batch_embedding)
             del batch_embedding
@@ -114,7 +113,7 @@ def greedy_cos_idf(ref_embedding, ref_lens, ref_masks, ref_idf,
     P = (word_precision * precision_scale).sum(dim=1)
     R = (word_recall * recall_scale).sum(dim=1)
     
-    F = (1 + beta**2) * P * R / (P * beta**2 + R)
+    F = 2 * P * R / (P + R)
     P = P.view(layers, batch_size)
     R = R.view(layers, batch_size)
     F = F.view(layers, batch_size)
@@ -133,5 +132,5 @@ def bert_cos_score_idf(model, refs, hyps, tokenizer, idf_dict,
 
         P, R, F1 = greedy_cos_idf(*ref_stats, *hyp_stats)
         preds.append(torch.stack((P, R, F1), dim=2).cpu())
-    preds = torch.cat(preds, dim=1)
+    preds = torch.cat(preds, dim=1).squeeze_(0)
     return preds
