@@ -4,7 +4,7 @@ import torch
 from collections import defaultdict
 from pytorch_pretrained_bert import BertTokenizer, BertModel, BertForMaskedLM
 
-from bert_score.bert_idf import get_idf_dict, bert_cos_score_idf
+from bert_score.utils import get_idf_dict, bert_cos_score_idf
 
 VERSION=bert_score.__version__
 bert_types = [
