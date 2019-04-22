@@ -41,7 +41,6 @@ def get_idf_dict(arr, tokenizer, nthreads=4):
     idf_dict.update({idx:log((num_docs+1)/(c+1)) for (idx, c) in idf_count.items()})
     return idf_dict
 
-
 def collate_idf(arr, tokenize, numericalize, idf_dict,
                 pad="[PAD]", device='cuda:0'):
     arr = [["[CLS]"]+tokenize(a)+["[SEP]"] for a in arr]
