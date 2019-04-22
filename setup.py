@@ -21,8 +21,7 @@ setup(
                       'pytorch-pretrained-bert>=0.6.1'],
     entry_points={
         'console_scripts': [
-            "bert-score=score.__main__:main",
-
+            "bert_score_cli.bert-score = score:main",
         ]
 
     },
@@ -30,10 +29,9 @@ setup(
     tests_require=['pytest'],
     classifiers=[
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: Apache Software License',
+        'License :: MIT License',
         'Programming Language :: Python :: 3',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
-
     ],
 
 )
