@@ -15,11 +15,11 @@ def padding(arr, pad_token, dtype=torch.long):
         mask[i, :lens[i]] = 1
     return padded, lens, mask
 
-def bert_encode(model, x, attention_mask, all_layers=True):
+def bert_encode(model, x, attention_mask):
     model.eval()
     x_seg = torch.zeros_like(x, dtype=torch.long)
     with torch.no_grad():
-        x_encoded_layers, pooled_output = model(x, x_seg, attention_mask=attention_mask, output_all_encoded_layers=all_layers)
+        x_encoded_layers, pooled_output = model(x, x_seg, attention_mask=attention_mask, output_all_encoded_layers=True)
     return x_encoded_layers
 
 def process(a, tokenizer=None):
@@ -28,7 +28,7 @@ def process(a, tokenizer=None):
         a = tokenizer.convert_tokens_to_ids(a)
     return set(a)
 
-def get_idf_dict(arr, tokenizer, nthreads=8):
+def get_idf_dict(arr, tokenizer, nthreads=4):
     idf_count = Counter()
     num_docs = len(arr)
 
@@ -43,9 +43,8 @@ def get_idf_dict(arr, tokenizer, nthreads=8):
 
 
 def collate_idf(arr, tokenize, numericalize, idf_dict,
-                pad="[PAD]", device='cuda:0', bert=False):
-    if bert: arr = [["[CLS]"]+tokenize(a)+["[SEP]"] for a in arr]
-    else: arr = [tokenize(a) for a in arr]
+                pad="[PAD]", device='cuda:0'):
+    arr = [["[CLS]"]+tokenize(a)+["[SEP]"] for a in arr]
     arr = [numericalize(a) for a in arr]
 
     idf_weights = [[idf_dict[i] for i in a] for a in arr]
@@ -61,8 +60,7 @@ def collate_idf(arr, tokenize, numericalize, idf_dict,
     return padded, padded_idf, lens, mask
 
 def get_bert_embedding(all_sens, model, tokenizer, idf_dict,
-                       batch_size=-1, word=False,
-                       all_layers=True, device='cuda:0'):
+                       batch_size=-1, device='cuda:0'):
 
     padded_sens, padded_idf, lens, mask = collate_idf(all_sens,
                                                       tokenizer.tokenize, tokenizer.convert_tokens_to_ids,
@@ -74,14 +72,10 @@ def get_bert_embedding(all_sens, model, tokenizer, idf_dict,
     embeddings = []
     with torch.no_grad():
         for i in range(0, len(all_sens), batch_size):
-            if not word:
-                batch_embedding = bert_encode(model, padded_sens[i:i+batch_size],
-                                              attention_mask=mask[i:i+batch_size],
-                                              all_layers=all_layers)
-                if all_layers: batch_embedding = torch.stack(batch_embedding)
-                else: batch_embedding.unsqueeze(0)
-            else:
-                batch_embedding = model.embeddings.word_embeddings(padded_sens[i:i+batch_size]).unsqueeze(0)
+            batch_embedding = bert_encode(model, padded_sens[i:i+batch_size],
+                                          attention_mask=mask[i:i+batch_size],
+                                          all_layers=all_layers)
+            batch_embedding = torch.stack(batch_embedding)
             embeddings.append(batch_embedding)
             del batch_embedding
 
@@ -90,30 +84,15 @@ def get_bert_embedding(all_sens, model, tokenizer, idf_dict,
     return total_embedding, lens, mask, padded_idf
 
 def greedy_cos_idf(ref_embedding, ref_lens, ref_masks, ref_idf,
-                   hyp_embedding, hyp_lens, hyp_masks, hyp_idf,
-                   beta=1, mean_sub=False, avg=True):
-    if mean_sub:
-        mean_mask = (ref_lens+hyp_lens).view(1, ref_lens.size(0), 1, 1).float().to(ref_embedding.device)
-        total_embedding = torch.cat([ref_embedding, hyp_embedding], dim=2)
-        total_embedding.div_(mean_mask)
-        m = total_embedding.sum(dim=2, keepdim=True)
+                   hyp_embedding, hyp_lens, hyp_masks, hyp_idf):
 
-        ref_embedding.sub_(m)
-        hyp_embedding.sub_(m)
-    
     ref_embedding.div_(torch.norm(ref_embedding, dim=-1).unsqueeze(-1))
     hyp_embedding.div_(torch.norm(hyp_embedding, dim=-1).unsqueeze(-1))
 
     batch_size = ref_embedding.size(1)
-    
-    if not avg:
-        layers = ref_embedding.size(0)
-        ref_embedding = ref_embedding.view(-1, ref_embedding.size(-2), ref_embedding.size(-1))
-        hyp_embedding = hyp_embedding.view(-1, hyp_embedding.size(-2), hyp_embedding.size(-1))
-    else:
-        layers = 1
-        ref_embedding = ref_embedding[9]
-        hyp_embedding = hyp_embedding[9]
+    layers = 1
+    ref_embedding = ref_embedding[8]
+    hyp_embedding = hyp_embedding[8]
 
     sim = torch.bmm(hyp_embedding, ref_embedding.transpose(1, 2))
     masks = torch.bmm(hyp_masks.unsqueeze(2).float(), ref_masks.unsqueeze(1).float())
@@ -142,19 +121,17 @@ def greedy_cos_idf(ref_embedding, ref_lens, ref_masks, ref_idf,
     return P, R, F
 
 def bert_cos_score_idf(model, refs, hyps, tokenizer, idf_dict,
-                       batch_size=256, device='cuda:0',
-                       all_layers=True, mean_sub=False,
-                       word=False, avg=True):
+                       batch_size=256, device='cuda:0'):
     preds = []
     for batch_start in range(0, len(refs), batch_size):
         batch_refs = refs[batch_start:batch_start+batch_size]
         batch_hyps = hyps[batch_start:batch_start+batch_size]
         ref_stats = get_bert_embedding(batch_refs, model, tokenizer, idf_dict,
-                                       word=word, all_layers=all_layers, device=device)
+                                       device=device)
         hyp_stats = get_bert_embedding(batch_hyps, model, tokenizer, idf_dict,
-                                       word=word, all_layers=all_layers, device=device)
+                                       device=device)
 
-        P, R, F1 = greedy_cos_idf(*ref_stats, *hyp_stats, mean_sub=mean_sub, avg=avg)
+        P, R, F1 = greedy_cos_idf(*ref_stats, *hyp_stats)
         preds.append(torch.stack((P, R, F1), dim=2).cpu())
     preds = torch.cat(preds, dim=1)
     return preds
