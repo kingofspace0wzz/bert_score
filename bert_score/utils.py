@@ -4,6 +4,9 @@ from itertools import chain
 from collections import defaultdict, Counter
 from multiprocessing import Pool
 from functools import partial
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
 
 def padding(arr, pad_token, dtype=torch.long):
     lens = torch.LongTensor([len(a) for a in arr])
@@ -133,3 +136,55 @@ def bert_cos_score_idf(model, refs, hyps, tokenizer, idf_dict,
         preds.append(torch.stack((P, R, F1), dim=2).cpu())
     preds = torch.cat(preds, dim=1).squeeze_(0)
     return preds
+
+def plot_example(h, r, model, tokenizer, idf_dict):
+    h_tokens = ['[CLS]'] + tokenizer.tokenize(h) + ['[SEP]']
+    r_tokens = ['[CLS]'] + tokenizer.tokenize(r) + ['[SEP]']
+
+    ref_embedding, ref_lens, ref_masks, padded_idf = get_bert_embedding([r], model, tokenizer, idf_dict)
+
+    hyp_embedding, hyp_lens, hyp_masks, padded_idf = get_bert_embedding([h], model, tokenizer, idf_dict)
+
+    ref_embedding = ref_embedding[8:9, :, :, :].mean(dim=0)[0]
+    hyp_embedding = hyp_embedding[8:9, :, :, :].mean(dim=0)[0]
+
+    ref_embedding.div_(ref_embedding.norm(dim=-1, keepdim=True))
+    hyp_embedding.div_(hyp_embedding.norm(dim=-1, keepdim=True))
+
+    sim = torch.mm(hyp_embedding, ref_embedding.transpose(0, 1)).cpu().numpy()
+    
+    # remove [CLS] and [SEP] tokens 
+    r_tokens = r_tokens[1:-1]
+    h_tokens = h_tokens[1:-1]
+    sim = sim[1:-1,1:-1]
+    
+    fig, ax = plt.subplots(figsize=(len(r_tokens)*0.8, len(h_tokens)*0.8))
+    im = ax.imshow(sim, cmap='Blues')
+
+    # We want to show all ticks...
+    ax.set_xticks(np.arange(len(r_tokens)))
+    ax.set_yticks(np.arange(len(h_tokens)))
+    # ... and label them with the respective list entries
+    ax.set_xticklabels(r_tokens, fontsize=14)
+    ax.set_yticklabels(h_tokens, fontsize=14)
+    plt.xlabel("Refernce", fontsize=14)
+    plt.ylabel("Candidate", fontsize=14)
+
+    # Rotate the tick labels and set their alignment.
+    plt.setp(ax.get_xticklabels(), rotation=45, ha="right",
+             rotation_mode="anchor")
+
+    # Loop over data dimensions and create text annotations.
+    for i in range(len(h_tokens)):
+        for j in range(len(r_tokens)):
+            text = ax.text(j, i, '{:.3f}'.format(sim[i, j]),
+                           ha="center", va="center", color="k" if sim[i, j] < 0.6 else "w")
+
+    fig.tight_layout()
+    plt.savefig("similarity.png", dpi=400)
+    plt.show()
+    P = sim.max(1).mean()
+    R = sim.max(0).mean()
+    F1 = 2 * P * R / (P + R)
+    
+    print("BERTScore F1: {:.3f}".format(F1))
