@@ -23,7 +23,16 @@ For an illustration, BERTScore precision can be computed as
 
 ### Installation
 
-You can easily install BERTScore by `pip install [placeholder]`.
+You can easily install BERTScore by:
+```sh
+pip install [placeholder]
+```
+Install it from the source by:
+```sh
+git clone https://github.com/Tiiiger/bert_score
+cd bert_score
+pip install .
+```
 
 ### Usage
 
@@ -32,9 +41,9 @@ We provide a command line interface(CLI) of BERTScore as well as a python module
 
 For the CLI, you can use it by
 ```
-bert_score refs.txt hyps.txt
+bert-score -r refs.txt -c hyps.txt
 ```
-See more options by `man bert_score`.
+See more options by `bert-score -h`.
 
 For the python module, please refer to the docstring of `bert_score.score` in `src/bert_score.py`.
 We also provide an interactive [example]().
@@ -48,4 +57,4 @@ in the reference and candidate sentences.
 <!-- ![]() -->
 
 ### Acknowledgement
-This repo wouldn't be possible without the awesome [pytorch-pretrained-BERT](https://github.com/huggingface/pytorch-pretrained-BERT).
+This repo wouldn't be possible without the awesome [bert](https://github.com/google-research/bert) and [pytorch-pretrained-BERT](https://github.com/huggingface/pytorch-pretrained-BERT).
