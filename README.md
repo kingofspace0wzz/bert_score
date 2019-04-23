@@ -1,9 +1,9 @@
 # BERTScore
-Automatic Evaluation Metric described in the paper [BERTScore: Evaluating Text Generation with BERT](https://arxiv.org).
+Automatic Evaluation Metric described in the paper [BERTScore: Evaluating Text Generation with BERT](https://arxiv.org/abs/1904.09675).
 
 #### Authors:
 * [Tianyi Zhang](https://scholar.google.com/citations?user=OI0HSa0AAAAJ&hl=en)*
-* [Varsha Kishore]()*
+* Varsha Kishore
 * [Felix Wu](https://scholar.google.com.tw/citations?user=sNL8SSoAAAAJ&hl=en)*
 * [Kilian Q. Weinberger](http://kilian.cs.cornell.edu/index.html)
 * [Yoav Artzi](https://yoavartzi.com/)
@@ -21,12 +21,21 @@ useful for evaluating different language generation tasks.
 For an illustration, BERTScore precision can be computed as
 ![](https://github.com/Tiiiger/bert_score/blob/master/bert_score.png "BERTScore")
 
+If you find this repo useful, please cite:
+```
+@article{bert-score,
+  title={BERTScore: Evaluating Text Generation with BERT},
+  author={Zhang, Tianyi and Kishore, Varsha and Wu, Felix and Weinberger, Kilian Q. and Artzi, Yoav.},
+  journal={arXiv preprint arXiv:1904.09675},
+  year={2019}
+}
+```
+
 ### Installation
 
-You can easily install BERTScore by:
-```sh
-pip install [placeholder]
-```
+Install requiremnts by `pip install -r requiremnts.txt`
+
+>>>>>>> c9bffc09a1c860a3a9889217ead6a901623b8395
 Install it from the source by:
 ```sh
 git clone https://github.com/Tiiiger/bert_score
@@ -56,16 +65,7 @@ bert-score -r refs.txt -c hyps.txt
 ```
 See more options by `bert-score -h`.
 
-For the python module, please refer to the docstring of `bert_score.score` in `src/bert_score.py`.
-We also provide an interactive [example]().
-
-#### Visualization
-Because BERTScore measure sentence similarity by accumulating word similarites,
-we can visualize it easily.
-
-Below is an example where we visualize the pairwise cosine similarity of words
-in the reference and candidate sentences.
-<!-- ![]() -->
+For the python module, please refer to [`cli/score.py`](https://github.com/Tiiiger/bert_score/blob/master/cli/score.py).
 
 ### Acknowledgement
 This repo wouldn't be possible without the awesome [bert](https://github.com/google-research/bert) and [pytorch-pretrained-BERT](https://github.com/huggingface/pytorch-pretrained-BERT).

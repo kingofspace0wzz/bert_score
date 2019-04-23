@@ -16,13 +16,13 @@ def main():
     parser = argparse.ArgumentParser('Calculate BERTScore')
     parser.add_argument('--bert', default='bert-base-multilingual-cased',
                         choices=bert_score.bert_types, help='BERT model name (default: bert-base-uncased)')
-    parser.add_argument('-l', '--num_layers', default=9, help='use first N layer in BERT (default: 9)')
-    parser.add_argument('-b', '--batch_size', default=64, help='batch size (default: 64)')
+    parser.add_argument('-l', '--num_layers', default=9, type=int, help='use first N layer in BERT (default: 9)')
+    parser.add_argument('-b', '--batch_size', default=64, type=int, help='batch size (default: 64)')
     parser.add_argument('--no_idf', action='store_true', help='BERT Score without IDF scaling')
     parser.add_argument('-s', '--seg_level', action='store_true', help='show individual score of each pair')
     parser.add_argument('-v', '--verbose', action='store_true', help='increase output verbosity')
-    parser.add_argument('-r', '--ref', required=True, help='reference file path or a string')
-    parser.add_argument('-c', '--cand', required=True,help='candidate (system outputs) file path or a string')
+    parser.add_argument('-r', '--ref', required=True, type=str, help='reference file path or a string')
+    parser.add_argument('-c', '--cand', required=True, type=str, help='candidate (system outputs) file path or a string')
 
     args = parser.parse_args()
 
