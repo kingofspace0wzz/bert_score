@@ -21,6 +21,16 @@ useful for evaluating different language generation tasks.
 For an illustration, BERTScore precision can be computed as
 ![](https://github.com/Tiiiger/bert_score/blob/master/bert_score.png "BERTScore")
 
+If you find this repo useful, please cite:
+```
+@article{bert-score,
+  title={BERTScore: Evaluating Text Generation with BERT},
+  author={Zhang, Tianyi and Kishore, Varsha and Wu, Felix and Weinberger, Kilian Q. and Artzi, Yoav.},
+  journal={arXiv preprint arXiv:1904.09675},
+  year={2019}
+}
+```
+
 ### Installation
 
 Install requiremnts by `pip install -r requiremnts.txt`
@@ -54,7 +64,7 @@ bert-score -r refs.txt -c hyps.txt
 ```
 See more options by `bert-score -h`.
 
-For the python module, please refer to [`bert_score/utils.py`](https://github.com/Tiiiger/bert_score/blob/master/bert_score/utils.py).
+For the python module, please refer to [`cli/score.py`](https://github.com/Tiiiger/bert_score/blob/master/cli/score.py).
 
 <!---
 #### Visualization
