@@ -1,12 +1,25 @@
 import torch
+import numpy as np
+import bert_score
+import matplotlib
+import matplotlib.pyplot as plt
+
 from math import log
 from itertools import chain
 from collections import defaultdict, Counter
 from multiprocessing import Pool
 from functools import partial
-import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
+
+
+bert_types = [
+    'bert-base-uncased',
+    'bert-large-uncased',
+    'bert-base-cased',
+    'bert-large-cased',
+    'bert-base-multilingual-uncased',
+    'bert-base-multilingual-cased',
+    'bert-base-chinese',
+]
 
 def padding(arr, pad_token, dtype=torch.long):
     lens = torch.LongTensor([len(a) for a in arr])
@@ -18,6 +31,7 @@ def padding(arr, pad_token, dtype=torch.long):
         mask[i, :lens[i]] = 1
     return padded, lens, mask
 
+
 def bert_encode(model, x, attention_mask):
     model.eval()
     x_seg = torch.zeros_like(x, dtype=torch.long)
@@ -25,11 +39,13 @@ def bert_encode(model, x, attention_mask):
         x_encoded_layers, pooled_output = model(x, x_seg, attention_mask=attention_mask, output_all_encoded_layers=True)
     return x_encoded_layers
 
+
 def process(a, tokenizer=None):
     if not tokenizer is None:
         a = ["[CLS]"]+tokenizer.tokenize(a)+["[SEP]"]
         a = tokenizer.convert_tokens_to_ids(a)
     return set(a)
+
 
 def get_idf_dict(arr, tokenizer, nthreads=4):
     idf_count = Counter()
@@ -43,6 +59,7 @@ def get_idf_dict(arr, tokenizer, nthreads=4):
     idf_dict = defaultdict(lambda : log((num_docs+1)/(1)))
     idf_dict.update({idx:log((num_docs+1)/(c+1)) for (idx, c) in idf_count.items()})
     return idf_dict
+
 
 def collate_idf(arr, tokenize, numericalize, idf_dict,
                 pad="[PAD]", device='cuda:0'):
@@ -60,6 +77,7 @@ def collate_idf(arr, tokenize, numericalize, idf_dict,
     mask = mask.to(device=device)
     lens = lens.to(device=device)
     return padded, padded_idf, lens, mask
+
 
 def get_bert_embedding(all_sens, model, tokenizer, idf_dict,
                        batch_size=-1, device='cuda:0'):
@@ -83,6 +101,7 @@ def get_bert_embedding(all_sens, model, tokenizer, idf_dict,
     total_embedding = torch.cat(embeddings, dim=-3)
 
     return total_embedding, lens, mask, padded_idf
+
 
 def greedy_cos_idf(ref_embedding, ref_lens, ref_masks, ref_idf,
                    hyp_embedding, hyp_lens, hyp_masks, hyp_idf):
@@ -121,6 +140,7 @@ def greedy_cos_idf(ref_embedding, ref_lens, ref_masks, ref_idf,
     F = F.view(layers, batch_size)
     return P, R, F
 
+
 def bert_cos_score_idf(model, refs, hyps, tokenizer, idf_dict,
                        batch_size=256, device='cuda:0'):
     preds = []
@@ -136,6 +156,7 @@ def bert_cos_score_idf(model, refs, hyps, tokenizer, idf_dict,
         preds.append(torch.stack((P, R, F1), dim=2).cpu())
     preds = torch.cat(preds, dim=1).squeeze_(0)
     return preds
+
 
 def plot_example(h, r, model, tokenizer, idf_dict):
     h_tokens = ['[CLS]'] + tokenizer.tokenize(h) + ['[SEP]']

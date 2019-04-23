@@ -9,21 +9,13 @@ from pytorch_pretrained_bert import BertTokenizer, BertModel, BertForMaskedLM
 import bert_score
 
 VERSION=bert_score.__version__
-bert_types = [
-    'bert-base-uncased',
-    'bert-large-uncased',
-    'bert-base-cased',
-    'bert-large-cased',
-    'bert-base-multilingual-uncased',
-    'bert-base-multilingual-cased',
-]
 
 def main():
     torch.multiprocessing.set_sharing_strategy('file_system')
 
     parser = argparse.ArgumentParser('Calculate BERTScore')
     parser.add_argument('--bert', default='bert-base-multilingual-cased',
-                        choices=bert_types, help='BERT model name (default: bert-base-uncased)')
+                        choices=bert_score.bert_types, help='BERT model name (default: bert-base-uncased)')
     parser.add_argument('-l', '--num_layers', default=9, help='use first N layer in BERT (default: 9)')
     parser.add_argument('-b', '--batch_size', default=64, help='batch size (default: 64)')
     parser.add_argument('--no_idf', action='store_true', help='BERT Score without IDF scaling')

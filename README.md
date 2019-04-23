@@ -38,9 +38,20 @@ pip install .
 
 #### Metric
 We provide a command line interface(CLI) of BERTScore as well as a python module. 
+For the CLI, you can use it as follows:
+1. To evaluate English text files:
 
-For the CLI, you can use it by
+```sh
+bert-score -r refs.txt -c hyps.txt --bert bert-base-uncased 
 ```
+2. To evaluate Chinese text files:
+
+```sh
+bert-score -r refs.txt -c hyps.txt --bert bert-base-chinese
+```
+3. To evaluate text files in other languages:
+
+```sh
 bert-score -r refs.txt -c hyps.txt
 ```
 See more options by `bert-score -h`.

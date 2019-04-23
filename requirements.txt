@@ -4,3 +4,5 @@ torch>=0.4.1
 tqdm
 # BERT
 pytorch-pretrained-bert>=0.6.1
+# matplotlib
+matplotlib

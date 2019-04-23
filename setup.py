@@ -18,12 +18,12 @@ setup(
                       'numpy',
                       'requests',
                       'tqdm',
+                      'matplotlib',
                       'pytorch-pretrained-bert>=0.6.1'],
     entry_points={
         'console_scripts': [
             "bert-score=cli.score:main",
         ]
-
     },
     # python_requires='>=3.5.0',
     tests_require=['pytest'],

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import time
 import argparse
 import torch
@@ -6,16 +7,7 @@ from pytorch_pretrained_bert import BertTokenizer, BertModel, BertForMaskedLM
 
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from bert_score.utils import plot_example
-
-bert_types = [
-    'bert-base-uncased',
-    'bert-large-uncased',
-    'bert-base-cased',
-    'bert-large-cased',
-    'bert-base-multilingual-uncased',
-    'bert-base-multilingual-cased',
-]
+from bert_score import plot_example, bert_types
 
 def main():
     torch.multiprocessing.set_sharing_strategy('file_system')
@@ -25,16 +17,20 @@ def main():
                         choices=bert_types, help='BERT model name (default: bert-base-uncased)')
     parser.add_argument('-l', '--num_layers', default=9, help='use first N layer in BERT (default: 9)')
     parser.add_argument('-v', '--verbose', action='store_true', help='increase output verbosity')
-    parser.add_argument('-r', '--ref', required=True, help='reference file path')
-    parser.add_argument('-c', '--cand', required=True,help='candidate file path')
+    parser.add_argument('-r', '--ref', required=True, help='reference file path or a string')
+    parser.add_argument('-c', '--cand', required=True,help='candidate (system outputs) file path or a string')
 
     args = parser.parse_args()
 
-    with open(args.cand) as f:
-        cands = [line.strip() for line in f]
+    if os.path.isfile(args.cand) and os.path.isfile(args.ref):
+        with open(args.cand) as f:
+            cands = [line.strip() for line in f]
 
-    with open(args.ref) as f:
-        refs = [line.strip() for line in f]
+        with open(args.ref) as f:
+            refs = [line.strip() for line in f]
+    else:
+        cands = [args.cand]
+        refs = [args.ref]
 
     assert len(cands) == len(refs)
 
